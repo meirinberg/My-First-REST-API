@@ -42,26 +42,48 @@ users = {
 def get_users():
    if request.method == 'GET':
       search_username = request.args.get('name')
-      if search_username :
-         subdict = {'users_list' : []}
-         for user in users['users_list']:
-            if user['name'] == search_username:
-               subdict['users_list'].append(user)
-         return subdict
+      search_job = request.args.get('job')
+      if search_username and search_job:
+         return findUserByNameAndJob(search_username, search_job)
+      elif search_username:
+         return findUserByName(search_username)
       return users
    elif request.method == 'POST':
       userToAdd = request.get_json()
       users['users_list'].append(userToAdd)
       resp = jsonify(success=True)
       #resp.status_code = 200 #optionally, you can always set a response code. 
-      # 200 is the default code for a normal response
+      #200 is the default code for a normal response
       return resp
 
-@app.route('/users/<id>')
+@app.route('/users/<id>', methods=['GET', 'DELETE'])
 def get_user(id):
    if id :
       for user in users['users_list']:
-        if user['id'] == id:
-           return user
-      return ({})
+         if user['id'] == id:
+            if request.method == 'GET':
+               return user
+            elif request.method == 'DELETE':
+               users['users_list'].remove(user)
+               #resp = jsonify(success=True)
+               #resp.status_code = 204
+               resp = jsonify(), 204
+               return resp
+      resp = jsonify({"Msg": "User not found with provided id."}), 404
+      return resp
    return users
+
+def findUserByNameAndJob(name, job):
+  sub = {'users_list' : []}
+  for user in users['users_list']:
+    if user['name'] == name and user['job'] == job:
+      sub['users_list'].append(user)
+  return sub
+
+def findUserByName(name):
+  sub = {'users_list' : []}
+  for user in users['users_list']:
+    if user['name'] == name:
+      sub['users_list'].append(user)
+  return sub
+
