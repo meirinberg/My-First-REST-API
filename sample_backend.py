@@ -1,3 +1,5 @@
+import math
+import random
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -52,6 +54,12 @@ def get_users():
       return users
    elif request.method == 'POST':
       userToAdd = request.get_json()
+      # Generate ID for POST.
+      userToAdd['id'] = generateID(6)
+      # Ensure there are no ID duplicates, each ID must be unique.
+      for user in users['users_list']:
+         while userToAdd['id'] == user['id']:
+            userToAdd['id'] = generateID(6)
       users['users_list'].append(userToAdd)
       #resp = jsonify(success=True)
       #resp.status_code = 200 #optionally, you can always set a response code. 
@@ -90,3 +98,9 @@ def findUserByName(name):
       sub['users_list'].append(user)
   return sub
 
+def generateID(length):
+  idTag = ""
+  characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  for i in range(length):
+    idTag += characters[(math.floor(random.random() * len(characters)))]
+  return idTag
